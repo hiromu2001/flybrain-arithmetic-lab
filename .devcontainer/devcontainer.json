@@ -1,0 +1,17 @@
+{
+  "name": "FlyBrain Arithmetic Lab",
+  "image": "mcr.microsoft.com/devcontainers/universal:2",
+  "forwardPorts": [5173, 8000],
+  "portsAttributes": {
+    "5173": {
+      "label": "FlyBrain Arithmetic Lab",
+      "onAutoForward": "openBrowser"
+    },
+    "8000": {
+      "label": "FastAPI backend",
+      "onAutoForward": "silent"
+    }
+  },
+  "postCreateCommand": "python3 -m venv backend/.venv && backend/.venv/bin/python -m pip install --upgrade pip && backend/.venv/bin/python -m pip install -r backend/requirements.txt && npm --prefix frontend install",
+  "postStartCommand": "bash .devcontainer/start-codespaces.sh"
+}

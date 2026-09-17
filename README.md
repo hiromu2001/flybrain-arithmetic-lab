@@ -2,6 +2,19 @@
 
 ショウジョウバエを模した神経回路に数量課題を与え、**視覚入力 → 神経活動 → 選択 → ドーパミン報酬 → 可塑性**をリアルタイムに観察する実験サンドボックスです。
 
+## すぐ遊ぶ：GitHub Codespaces
+
+ローカルへのcloneやPython / Node.jsの事前インストールは不要です。
+
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/hiromu2001/flybrain-arithmetic-lab?quickstart=1)
+
+1. 上の **Open in GitHub Codespaces** を押す
+2. **Create codespace** を押す
+3. 初回だけ依存関係が自動でセットアップされる
+4. セットアップ後、FlyBrain Arithmetic Lab の画面が自動で開く
+
+CodespacesではReact/ViteとFastAPIが自動起動します。フロントエンドの `5173` 番ポートからWebSocketをVite経由でバックエンドへ中継するため、Codespacesのブラウザ版でもそのまま操作できます。
+
 ## v0.2 でできること
 
 - 解剖寄りのショウジョウバエ表示
@@ -87,7 +100,7 @@ http://localhost:5173
 
 ## 初回起動
 
-必要環境:
+Codespacesを使わずローカルで動かす場合の必要環境:
 
 - Python 3.11+
 - Node.js 20+
@@ -145,6 +158,9 @@ LIF activity + dopamine-gated plasticity
 
 ```text
 flybrain-arithmetic-lab/
+├─ .devcontainer/
+│  ├─ devcontainer.json
+│  └─ start-codespaces.sh
 ├─ backend/
 │  ├─ main.py
 │  ├─ simulation.py
