@@ -1,9 +1,12 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App'
+import { installBrowserSimulationSocket } from './browserSocket'
 import './styles.css'
 
-if (window.location.hostname.endsWith('.app.github.dev')) {
+if (window.location.hostname.endsWith('.github.io')) {
+  installBrowserSimulationSocket()
+} else if (window.location.hostname.endsWith('.app.github.dev')) {
   const NativeWebSocket = window.WebSocket
   window.WebSocket = new Proxy(NativeWebSocket, {
     construct(Target, args) {
