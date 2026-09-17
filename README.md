@@ -1,12 +1,10 @@
 # FlyBrain Arithmetic Lab
 
-ショウジョウバエを模した神経回路に数量課題を与え、**視覚入力 → 神経活動 → 選択 → ドーパミン報酬 → 可塑性**をリアルタイムに観察する実験サンドボックスです。
-
-## Webでそのまま遊ぶ
+## ▶ [ブラウザですぐ遊ぶ](https://hiromu2001.github.io/flybrain-arithmetic-lab/)
 
 **インストール・clone・Codespacesは不要です。**
 
-[▶ FlyBrain Arithmetic Lab をブラウザで遊ぶ](https://hiromu2001.github.io/flybrain-arithmetic-lab/)
+ショウジョウバエを模した神経回路に数量課題を与え、**視覚入力 → 神経活動 → 選択 → ドーパミン報酬 → 可塑性**をリアルタイムに観察する実験サンドボックスです。
 
 GitHub Pages版ではシミュレーションをブラウザ内のTypeScriptで実行するため、URLを開くだけで操作できます。
 
