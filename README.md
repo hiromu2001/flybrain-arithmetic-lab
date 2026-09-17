@@ -2,20 +2,15 @@
 
 ショウジョウバエを模した神経回路に数量課題を与え、**視覚入力 → 神経活動 → 選択 → ドーパミン報酬 → 可塑性**をリアルタイムに観察する実験サンドボックスです。
 
-## すぐ遊ぶ：GitHub Codespaces
+## Webでそのまま遊ぶ
 
-ローカルへのcloneやPython / Node.jsの事前インストールは不要です。
+**インストール・clone・Codespacesは不要です。**
 
-[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/hiromu2001/flybrain-arithmetic-lab?quickstart=1)
+[▶ FlyBrain Arithmetic Lab をブラウザで遊ぶ](https://hiromu2001.github.io/flybrain-arithmetic-lab/)
 
-1. 上の **Open in GitHub Codespaces** を押す
-2. **Create codespace** を押す
-3. 初回だけ依存関係が自動でセットアップされる
-4. セットアップ後、FlyBrain Arithmetic Lab の画面が自動で開く
+GitHub Pages版ではシミュレーションをブラウザ内のTypeScriptで実行するため、URLを開くだけで操作できます。
 
-CodespacesではReact/ViteとFastAPIが自動起動します。フロントエンドの `5173` 番ポートからWebSocketをVite経由でバックエンドへ中継するため、Codespacesのブラウザ版でもそのまま操作できます。
-
-## v0.2 でできること
+## できること
 
 - 解剖寄りのショウジョウバエ表示
   - 複眼
@@ -30,11 +25,7 @@ CodespacesではReact/ViteとFastAPIが自動起動します。フロントエ�
   - DAN / MBON
   - descending/output neurons
 - 284個の表示ニューロンをリアルタイム更新
-- 各ニューロンに以下を保持
-  - cell type
-  - neurotransmitter
-  - membrane potential
-  - activity
+- 各ニューロンに cell type / neurotransmitter / membrane potential / activity を保持
 - 正解時に dopamine burst
 - eligibility trace を使った報酬依存可塑性
 - 課題別に学習履歴・正答率を保持
@@ -49,68 +40,15 @@ CodespacesではReact/ViteとFastAPIが自動起動します。フロントエ�
 
 画面上部の課題タブから切り替えられます。
 
-## 重要: 現在の脳モデルについて
+## 現在の脳モデルについて
 
 現在表示している284ニューロンは **FlyWireの139kニューロンをそのまま動かしているものではありません**。
 
-現在は:
+現在は `FlyWire-ready functional proxy` です。
 
-```text
-FlyWire-ready functional proxy
-```
+実際のショウジョウバエ脳を意識した領域構造・cell type・neurotransmitter・LIF状態を持つ縮約モデルで、将来的にsimulation engineをFlyWire由来のコネクトームへ置き換えられる構造にしています。
 
-です。
-
-つまり、実際のショウジョウバエ脳を意識した領域構造・cell type・neurotransmitter・LIF状態を持つ縮約モデルで、フロントエンドとAPIを先に完成させています。
-
-将来的にsimulation engineだけをFlyWire由来のコネクトームへ置き換えられるよう、UI側は個々のニューロンを次の形式で受け取ります。
-
-```json
-{
-  "id": "neuron-id",
-  "region": "mushroom_left",
-  "cell_type": "Kenyon cell",
-  "neurotransmitter": "acetylcholine",
-  "activity": 0.73,
-  "membrane_potential": -54.8,
-  "x": 0.41,
-  "y": 0.32
-}
-```
-
-## Windowsで最新版に更新
-
-すでにclone済みの場合、VS Codeのターミナルでリポジトリのフォルダに移動して:
-
-```powershell
-git pull
-```
-
-その後、古いバックエンド/フロントエンドの黒いウィンドウを閉じて:
-
-```powershell
-.\start.bat
-```
-
-ブラウザで:
-
-```text
-http://localhost:5173
-```
-
-## 初回起動
-
-Codespacesを使わずローカルで動かす場合の必要環境:
-
-- Python 3.11+
-- Node.js 20+
-- Git
-
-```powershell
-git clone https://github.com/hiromu2001/flybrain-arithmetic-lab.git
-cd flybrain-arithmetic-lab
-.\start.bat
-```
+画面上のリアルなハエや脳形状は可視化であり、物理演算による生体シミュレーションではありません。また、現段階で課題を学習できても「本物のハエが四則演算できる」ことの証明にはなりません。
 
 ## 操作
 
@@ -124,9 +62,7 @@ cd flybrain-arithmetic-lab
 
 ### SPEED
 
-`0.5x / 1x / 5x / 10x / 20x`
-
-から選択できます。
+`0.5x / 1x / 5x / 10x / 20x` から選択できます。
 
 ### RESET BRAIN
 
@@ -140,27 +76,51 @@ cd flybrain-arithmetic-lab
 
 意思決定時のノイズ量を変更します。
 
-## アーキテクチャ
+## Web版アーキテクチャ
 
 ```text
 React / TypeScript
         |
-     WebSocket
+Browser simulation socket
         |
-FastAPI / Python
+Functional FlyBrain model
         |
-FlyBrainSimulation
-        |
-LIF activity + dopamine-gated plasticity
+Neural activity + dopamine-gated plasticity
+```
+
+Web版はGitHub Pagesへ自動デプロイされます。`main` のフロントエンドを更新するとGitHub Actionsがビルド・公開します。
+
+## ローカル版
+
+Python/FastAPI版も残してあります。ローカル版を使う場合は Python 3.11+、Node.js 20+、Git が必要です。
+
+### Windows
+
+```powershell
+git clone https://github.com/hiromu2001/flybrain-arithmetic-lab.git
+cd flybrain-arithmetic-lab
+.\start.bat
+```
+
+ブラウザで `http://localhost:5173` を開きます。
+
+### macOS / Linux
+
+```bash
+git clone https://github.com/hiromu2001/flybrain-arithmetic-lab.git
+cd flybrain-arithmetic-lab
+./start.sh
 ```
 
 ## ディレクトリ
 
 ```text
 flybrain-arithmetic-lab/
+├─ .github/
+│  └─ workflows/
+│     ├─ ci.yml
+│     └─ pages.yml
 ├─ .devcontainer/
-│  ├─ devcontainer.json
-│  └─ start-codespaces.sh
 ├─ backend/
 │  ├─ main.py
 │  ├─ simulation.py
@@ -169,19 +129,17 @@ flybrain-arithmetic-lab/
 ├─ frontend/
 │  ├─ src/
 │  │  ├─ App.tsx
+│  │  ├─ browserSocket.ts
 │  │  ├─ main.tsx
 │  │  └─ styles.css
-│  └─ package.json
+│  ├─ package.json
+│  └─ vite.config.ts
 ├─ docs/
 ├─ start.bat
 └─ start.sh
 ```
 
 ## 次の研究実装
-
-次の大きな段階は **FlyWire実コネクトーム接続**です。
-
-予定:
 
 1. FlyWire node / edge export loader
 2. neuropil / cell type / neurotransmitter mapping
@@ -191,9 +149,3 @@ flybrain-arithmetic-lab/
 6. real connectome vs randomized connectome
 7. ablation experiment
 8. 未学習数量への一般化テスト
-
-## 注意
-
-画面上のリアルなハエや脳形状は可視化です。物理演算による生体シミュレーションではありません。
-
-また、現段階で課題を学習できても「本物のハエが四則演算できる」ことの証明にはなりません。実コネクトーム接続後も、刺激符号化・ニューロンモデル・可塑性則などの仮定を明示して評価する必要があります。
