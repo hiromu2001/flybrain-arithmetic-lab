@@ -1,55 +1,83 @@
 # FlyBrain Arithmetic Lab
 
-ショウジョウバエの脳回路を模した、ドーパミン報酬学習と神経活動のリアルタイム可視化プロトタイプです。
+ショウジョウバエを模した神経回路に数量課題を与え、**視覚入力 → 神経活動 → 選択 → ドーパミン報酬 → 可塑性**をリアルタイムに観察する実験サンドボックスです。
 
-> 現在のMVPは **FlyWireの全コネクトームそのものを完全再現する実装ではありません**。まず「数量刺激 → 神経活動 → 意思決定 → 報酬 → 可塑性」の実験ループと可視化を動かし、後から実コネクトームへ差し替えられる構成にしています。
+## v0.2 でできること
 
-## できること
+- 解剖寄りのショウジョウバエ表示
+  - 複眼
+  - 翅と翅脈
+  - 腹部の節
+  - 6本脚
+  - 触角・剛毛
+- 左右対称の脳表示
+  - optic lobe
+  - mushroom body
+  - central complex
+  - DAN / MBON
+  - descending/output neurons
+- 284個の表示ニューロンをリアルタイム更新
+- 各ニューロンに以下を保持
+  - cell type
+  - neurotransmitter
+  - membrane potential
+  - activity
+- 正解時に dopamine burst
+- eligibility trace を使った報酬依存可塑性
+- 課題別に学習履歴・正答率を保持
 
-- 1〜4個のドット刺激を提示
-- `+1` 課題を自動生成
-- 簡易LIF（Leaky Integrate-and-Fire）風ニューロン状態をシミュレーション
-- 視覚系 / 数量表現 / Mushroom Body / DAN / MBON / 出力層を可視化
-- 正解時に dopamine burst を発生
-- eligibility trace を使った簡易報酬依存可塑性
-- Trial、正答率、ドーパミン値、出力活動をリアルタイム表示
-- Observe / Auto Train 切替
+### 学習できる課題
 
-## 構成
+1. 数量比較（どちらが多いか）
+2. `+1`
+3. `-1`
+4. 加算
+5. 減算
+
+画面上部の課題タブから切り替えられます。
+
+## 重要: 現在の脳モデルについて
+
+現在表示している284ニューロンは **FlyWireの139kニューロンをそのまま動かしているものではありません**。
+
+現在は:
 
 ```text
-flybrain-arithmetic-lab/
-├─ backend/
-│  ├─ main.py
-│  ├─ simulation.py
-│  └─ requirements.txt
-├─ frontend/
-│  ├─ src/
-│  │  ├─ App.tsx
-│  │  ├─ main.tsx
-│  │  └─ styles.css
-│  ├─ index.html
-│  ├─ package.json
-│  ├─ tsconfig.json
-│  └─ vite.config.ts
-├─ start.bat
-└─ start.sh
+FlyWire-ready functional proxy
 ```
 
-## 必要環境
+です。
 
-- Python 3.11+
-- Node.js 20+
+つまり、実際のショウジョウバエ脳を意識した領域構造・cell type・neurotransmitter・LIF状態を持つ縮約モデルで、フロントエンドとAPIを先に完成させています。
 
-## Windowsで起動
+将来的にsimulation engineだけをFlyWire由来のコネクトームへ置き換えられるよう、UI側は個々のニューロンを次の形式で受け取ります。
 
-リポジトリをclone後、ルートで:
-
-```bat
-start.bat
+```json
+{
+  "id": "neuron-id",
+  "region": "mushroom_left",
+  "cell_type": "Kenyon cell",
+  "neurotransmitter": "acetylcholine",
+  "activity": 0.73,
+  "membrane_potential": -54.8,
+  "x": 0.41,
+  "y": 0.32
+}
 ```
 
-初回は依存関係をインストールします。バックエンドとフロントエンドが別ウィンドウで起動します。
+## Windowsで最新版に更新
+
+すでにclone済みの場合、VS Codeのターミナルでリポジトリのフォルダに移動して:
+
+```powershell
+git pull
+```
+
+その後、古いバックエンド/フロントエンドの黒いウィンドウを閉じて:
+
+```powershell
+.\start.bat
+```
 
 ブラウザで:
 
@@ -57,64 +85,99 @@ start.bat
 http://localhost:5173
 ```
 
-## 手動起動
+## 初回起動
 
-### Backend
+必要環境:
 
-```bash
-cd backend
-python -m venv .venv
-.venv\Scripts\activate
-pip install -r requirements.txt
-uvicorn main:app --reload --port 8000
+- Python 3.11+
+- Node.js 20+
+- Git
+
+```powershell
+git clone https://github.com/hiromu2001/flybrain-arithmetic-lab.git
+cd flybrain-arithmetic-lab
+.\start.bat
 ```
 
-macOS / Linux:
+## 操作
 
-```bash
-source .venv/bin/activate
-```
+### RUN 1 TRIAL
 
-### Frontend
+1問だけ実行します。神経活動と選択をゆっくり観察するときに使います。
 
-```bash
-cd frontend
-npm install
-npm run dev
-```
+### AUTO TRAIN
 
-## 現在のモデル
+連続で学習させます。
 
-MVPでは計算負荷と検証容易性を優先し、数十ノードの機能的ネットワークを使います。
+### SPEED
+
+`0.5x / 1x / 5x / 10x / 20x`
+
+から選択できます。
+
+### RESET BRAIN
+
+学習状態を初期化します。選択中の課題は維持されます。
+
+### LEARNING RATE
+
+正解時の可塑性の強さを変更します。
+
+### NEURAL NOISE
+
+意思決定時のノイズ量を変更します。
+
+## アーキテクチャ
 
 ```text
-visual -> quantity -> kenyon -> mbon -> left/right output
-                         ^
-                         |
-                     dopamine
+React / TypeScript
+        |
+     WebSocket
+        |
+FastAPI / Python
+        |
+FlyBrainSimulation
+        |
+LIF activity + dopamine-gated plasticity
 ```
 
-正解時:
+## ディレクトリ
 
 ```text
-reward = 1
-DAN activity ↑
-Δw = learning_rate × dopamine × eligibility_trace
+flybrain-arithmetic-lab/
+├─ backend/
+│  ├─ main.py
+│  ├─ simulation.py
+│  ├─ smoke_test.py
+│  └─ requirements.txt
+├─ frontend/
+│  ├─ src/
+│  │  ├─ App.tsx
+│  │  ├─ main.tsx
+│  │  └─ styles.css
+│  └─ package.json
+├─ docs/
+├─ start.bat
+└─ start.sh
 ```
 
-誤答時は正のドーパミン報酬を与えません。
+## 次の研究実装
 
-## 次の段階
+次の大きな段階は **FlyWire実コネクトーム接続**です。
 
-1. FlyWire公開コネクトームの読み込みアダプタ
-2. 実際のcell type / neuropil情報のマッピング
-3. LC11を含む視覚経路の検証
-4. Mushroom BodyのDAN / KC / MBON回路をより生物学的に実装
-5. `+1` 学習後の未知数量への一般化テスト
-6. ablation（LC11 / DAN / MBON停止）
-7. real connectome vs randomized connectome 比較
-8. 3D脳表示
+予定:
+
+1. FlyWire node / edge export loader
+2. neuropil / cell type / neurotransmitter mapping
+3. sparse adjacency graph
+4. optic lobeから中央脳への刺激伝播
+5. DAN / KC / MBON可塑性の実回路寄り実装
+6. real connectome vs randomized connectome
+7. ablation experiment
+8. 未学習数量への一般化テスト
 
 ## 注意
 
-このMVPで算数課題に成功しても「本物のハエが算数を理解した」とは言えません。現段階では、ショウジョウバエ由来の回路設計思想を取り入れたシミュレーション上で、報酬学習が成立するかを見るための研究・可視化プロトタイプです。
+画面上のリアルなハエや脳形状は可視化です。物理演算による生体シミュレーションではありません。
+
+また、現段階で課題を学習できても「本物のハエが四則演算できる」ことの証明にはなりません。実コネクトーム接続後も、刺激符号化・ニューロンモデル・可塑性則などの仮定を明示して評価する必要があります。
