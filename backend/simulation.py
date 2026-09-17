@@ -35,9 +35,9 @@ class FlyBrainSimulation:
     """Biologically inspired, FlyWire-ready teaching/research sandbox.
 
     The topology rendered by the UI is a denser functional proxy, not yet the
-    139k-neuron FlyWire connectome.  The API deliberately exposes region, cell
-    type, neurotransmitter and membrane-state fields so a FlyWire-backed engine
-    can replace this class without changing the frontend protocol.
+    full FlyWire connectome. The API exposes region, cell type,
+    neurotransmitter and membrane-state fields so a connectome-backed engine
+    can replace this implementation without changing the frontend protocol.
     """
 
     REGION_SPECS = {
@@ -53,6 +53,7 @@ class FlyBrainSimulation:
     }
 
     ANSWER_MAX = 8
+    ANSWER_COUNT = ANSWER_MAX + 1  # includes zero
     FEATURE_SIZE = 16
 
     def __init__(self, seed: int = 7) -> None:
@@ -67,14 +68,12 @@ class FlyBrainSimulation:
         self.recent: list[bool] = []
         self.task_stats = {key: {"trial": 0, "correct": 0, "recent": []} for key in TASKS}
 
-        # Task-specific plastic readout.  This is a compact proxy for learned
-        # KC/MBON associations and is intentionally swappable for connectome data.
         self.weights = {
-            key: self.rng.normal(0.0, 0.045, size=(self.FEATURE_SIZE, self.ANSWER_MAX))
+            key: self.rng.normal(0.0, 0.045, size=(self.FEATURE_SIZE, self.ANSWER_COUNT))
             for key in TASKS
         }
         self.eligibility = {
-            key: np.zeros((self.FEATURE_SIZE, self.ANSWER_MAX), dtype=float)
+            key: np.zeros((self.FEATURE_SIZE, self.ANSWER_COUNT), dtype=float)
             for key in TASKS
         }
 
@@ -108,7 +107,6 @@ class FlyBrainSimulation:
             cx, cy = center
             sx, sy = spread
             for local_i in range(count):
-                # Gaussian packing gives a much more organic brain-like cloud than rings.
                 x = float(np.clip(self.rng.normal(cx, sx * 0.42), 0.025, 0.975))
                 y = float(np.clip(self.rng.normal(cy, sy * 0.42), 0.05, 0.95))
                 templates.append(
@@ -168,8 +166,6 @@ class FlyBrainSimulation:
         return a, b, "-", a - b
 
     def _make_choices(self, correct: int) -> list[int]:
-        if self.task == "compare" and self.last_result is None:
-            pass
         candidates = [n for n in range(0, self.ANSWER_MAX + 1) if n != correct]
         wrong_pool = sorted(candidates, key=lambda n: abs(n - correct))[:4]
         wrong = int(self.rng.choice(wrong_pool))
@@ -191,12 +187,9 @@ class FlyBrainSimulation:
     def run_trial(self) -> dict[str, Any]:
         a, b, operator, correct_answer = self._make_problem()
         choices = [a, b] if self.task == "compare" else self._make_choices(correct_answer)
-        if self.task == "compare":
-            correct_answer = max(a, b)
-
         features = self._features(a, b)
         task_weights = self.weights[self.task]
-        scores = np.array([features @ task_weights[:, choice - 1] for choice in choices], dtype=float)
+        scores = np.array([features @ task_weights[:, choice] for choice in choices], dtype=float)
         scores += self.rng.normal(0.0, self.noise, size=2)
 
         if self.rng.random() < self.exploration:
@@ -210,7 +203,7 @@ class FlyBrainSimulation:
 
         eligibility = self.eligibility[self.task]
         eligibility *= exp(-1.0 / 4.0)
-        answer_col = max(selected_answer - 1, 0)
+        answer_col = selected_answer
         eligibility[:, answer_col] += features
 
         before = float(task_weights[:, answer_col].sum())
